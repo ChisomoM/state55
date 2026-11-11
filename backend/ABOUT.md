@@ -18,7 +18,7 @@ Unlike generic Go templates, this one has multi-tenancy baked in:
 ### What's Inside
 
 ```
-avec-go-template/
+avebackend/
 ├── db/                    # Connection manager + migrations
 ├── models/                # Base, user/RBAC, audit schemas
 ├── middleware/            # JWT, tenant, RBAC, audit, CORS

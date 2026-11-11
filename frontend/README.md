@@ -47,8 +47,8 @@ The template follows a **Quiet Premium** design philosophy:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/ChisomoM/c-react-template.git
-   cd c-react-template
+   git clone https://github.com/ChisomoM/backend.git
+   cd backend
    ```
 
 2. Install dependencies:
