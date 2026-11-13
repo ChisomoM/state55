@@ -1,10 +1,10 @@
-# Chizo's React Template
+# Motherland Web
 
-A modern React template with authentication, routing, admin dashboard, and public-facing pages, built with TypeScript, Vite, and Tailwind CSS.
+The web client for Motherland, a Pan-African digital community connecting the continent and its diaspora through culture, community, membership and member-led governance. Built with React, TypeScript, Vite, and Tailwind CSS.
 
 ## Features
 
-- **Quiet Premium Design System**: A refined, modern design with a focused color palette (Blue, Charcoal, Cream) and neutral Inter typography.
+- **Black and White Design System**: A restrained black, white and neutral-gray palette with Sora typography. Colour is reserved for status and meaning.
 - **Authentication System**: Login/logout with JWT tokens, protected routes based on account types (can be replaced with Firebase Auth).
 - **Admin Dashboard**: Comprehensive admin interface with sidebar navigation, user management, and analytics.
 - **Public Pages**: Modern landing page with a hero section, staggered feature grid, and integrated animations.
@@ -30,9 +30,9 @@ A modern React template with authentication, routing, admin dashboard, and publi
 
 ## Design System
 
-The template follows a **Quiet Premium** design philosophy:
-- **Colors**: Charcoal for primary text, Gray-dark for body, Blue for CTAs, and Cream/White for section backgrounds.
-- **Typography**: Uses the **Inter** font family for a clean, neutral, and professional look.
+The site follows a **Quiet Premium** design philosophy (see `Design_system.md`):
+- **Colors**: Black and white are the main colours. Neutral grays for secondary text and borders; colour only where it carries meaning (for example success or error states).
+- **Typography**: Uses the **Sora** font family.
 - **Motion**: Noticeable but non-distracting animations with a focus on smooth page entry and scroll-linked events.
 - **Spacing**: Generous padding and wide-set layouts to ensure content has room to breathe.
 

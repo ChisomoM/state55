@@ -7,9 +7,9 @@ export default {
   theme: {
     extend: {
       colors: {
-        blue: '#3B82F6',
-        'blue-dark': '#1E40AF',
-        charcoal: '#1F2937',
+        blue: '#000000',
+        'blue-dark': '#262626',
+        charcoal: '#0A0A0A',
         'gray-dark': '#374151',
         'gray-mid': '#6B7280',
         'gray-light': '#E5E7EB',
@@ -27,10 +27,7 @@ export default {
         }
       },
       fontFamily: {
-        inter: ['Inter', 'sans-serif'],
-      },
-      backgroundImage: {
-        'orange-gradient': 'linear-gradient(to right, #D70F0E 0%, #E5600B 70%)',
+        sora: ['Sora', 'sans-serif'],
       },
       fontSize: {
         'hero-title': '92px',

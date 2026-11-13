@@ -14,13 +14,13 @@ interface SEOProps {
 }
 
 const SEO: React.FC<SEOProps> = ({
-  title = 'Default Title',
-  description = 'Default description',
+  title = 'Motherland',
+  description = 'Motherland is a Pan-African digital community connecting the continent and its diaspora.',
   keywords = '',
   image = '',
   url = window.location.href,
   type = 'website',
-  siteName = 'Your Site Name',
+  siteName = 'Motherland',
   twitterCard = 'summary_large_image',
   canonical,
   children,

@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pdftotext -layout State_55_Architecture_Blueprint_v1.2.pdf \"C:/Users/omen/AppData/Local/Temp/claude/c--Work-programming-state55/dc02326c-1b45-4094-90fc-579caee61a2f/scratchpad/blueprint.txt\")"
+    ]
+  }
+}

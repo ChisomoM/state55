@@ -72,14 +72,14 @@ export const AdminDashboard: React.FC = () => {
         
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl sm:text-4xl font-bold text-charcoal mb-2">Dashboard</h1>
-          <p className="text-gray-600">Welcome back! Here's your business performance overview.</p>
+          <h1 className="text-3xl sm:text-4xl font-bold text-charcoal mb-2">Overview</h1>
+          <p className="text-gray-600">Welcome back. Here is how the Motherland community is doing.</p>
         </div>
 
         {/* Primary KPIs - 4 Column Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <KPICard
-            title="Total Transactions"
+            title="Members"
             value="24,580"
             change={12.5}
             icon={<Activity className="w-6 h-6 text-white" />}
@@ -87,7 +87,7 @@ export const AdminDashboard: React.FC = () => {
             accentColor="bg-blue"
           />
           <KPICard
-            title="Verifications"
+            title="Cards Issued"
             value="1,248"
             change={8.2}
             icon={<CheckCircle2 className="w-6 h-6 text-white" />}
@@ -95,7 +95,7 @@ export const AdminDashboard: React.FC = () => {
             accentColor="bg-blue-dark"
           />
           <KPICard
-            title="Active Customers"
+            title="Active Communities"
             value="3,421"
             change={15.8}
             icon={<Users className="w-6 h-6 text-white" />}
@@ -103,7 +103,7 @@ export const AdminDashboard: React.FC = () => {
             accentColor="bg-blue-dark"
           />
           <KPICard
-            title="Pending Tasks"
+            title="Pending Applications"
             value="45"
             change={-3.2}
             icon={<Clock className="w-6 h-6 text-white" />}
@@ -115,19 +115,19 @@ export const AdminDashboard: React.FC = () => {
         {/* Secondary Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
           <StatsBadge
-            label="Completion Rate"
+            label="Profiles Completed"
             value="94%"
             icon={<CheckCircle2 className="w-5 h-5 text-white" />}
             color="bg-blue"
           />
           <StatsBadge
-            label="Avg Response Time"
+            label="Avg Review Time"
             value="2.4s"
             icon={<Clock className="w-5 h-5 text-white" />}
             color="bg-blue-dark"
           />
           <StatsBadge
-            label="Success Rate"
+            label="Card Verification Rate"
             value="98.5%"
             icon={<TrendingUp className="w-5 h-5 text-white" />}
             color="bg-blue-dark"
@@ -137,11 +137,11 @@ export const AdminDashboard: React.FC = () => {
         {/* Charts and Tables Section */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
-          {/* Transactions Trend - Takes up 2 columns */}
+          {/* Membership Growth - Takes up 2 columns */}
           <Card className="lg:col-span-2 bg-white border-0 shadow-md hover:shadow-lg transition-shadow">
             <CardHeader className="border-b border-gray-100 pb-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-bold text-charcoal">Transactions Trend</h2>
+                <h2 className="text-lg font-bold text-charcoal">Membership Growth</h2>
                 <a href="#" className="flex items-center gap-2 text-blue hover:text-blue-dark text-sm font-medium">
                   View Details
                   <ArrowRight className="w-4 h-4" />
@@ -153,16 +153,16 @@ export const AdminDashboard: React.FC = () => {
                 <div className="text-center">
                   <Activity className="w-12 h-12 text-gray-mid mx-auto mb-3" />
                   <p className="text-gray-600 font-medium">Chart placeholder</p>
-                  <p className="text-sm text-gray-500">Connect to your data visualization library</p>
+                  <p className="text-sm text-gray-500">Membership data will appear here</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Quick Stats */}
+          {/* Growth */}
           <Card className="bg-white border-0 shadow-md hover:shadow-lg transition-shadow">
             <CardHeader className="border-b border-gray-100 pb-4">
-              <h2 className="text-lg font-bold text-charcoal">Quick Stats</h2>
+              <h2 className="text-lg font-bold text-charcoal">Growth</h2>
             </CardHeader>
             <CardContent className="pt-6">
               <div className="space-y-4">
@@ -186,11 +186,11 @@ export const AdminDashboard: React.FC = () => {
           </Card>
         </div>
 
-        {/* Recent Transactions */}
+        {/* Recent Sign-ups */}
         <Card className="mt-6 bg-white border-0 shadow-md hover:shadow-lg transition-shadow">
           <CardHeader className="border-b border-gray-100 pb-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold text-charcoal">Recent Transactions</h2>
+              <h2 className="text-lg font-bold text-charcoal">Recent Sign-ups</h2>
               <a href="#" className="text-blue hover:text-blue-dark text-sm font-medium">
                 View All
               </a>
@@ -201,9 +201,9 @@ export const AdminDashboard: React.FC = () => {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-200">
-                    <th className="text-left text-xs font-semibold text-gray-600 py-3 px-4">ID</th>
-                    <th className="text-left text-xs font-semibold text-gray-600 py-3 px-4">Customer</th>
-                    <th className="text-left text-xs font-semibold text-gray-600 py-3 px-4">Amount</th>
+                    <th className="text-left text-xs font-semibold text-gray-600 py-3 px-4">Member ID</th>
+                    <th className="text-left text-xs font-semibold text-gray-600 py-3 px-4">Name</th>
+                    <th className="text-left text-xs font-semibold text-gray-600 py-3 px-4">Country</th>
                     <th className="text-left text-xs font-semibold text-gray-600 py-3 px-4">Status</th>
                     <th className="text-left text-xs font-semibold text-gray-600 py-3 px-4">Date</th>
                   </tr>
@@ -211,12 +211,12 @@ export const AdminDashboard: React.FC = () => {
                 <tbody>
                   {[1, 2, 3, 4, 5].map((_, idx) => (
                     <tr key={idx} className="border-b border-gray-100 hover:bg-cream transition-colors">
-                      <td className="text-sm text-charcoal py-3 px-4 font-medium">#TXN{2024 + idx}</td>
-                      <td className="text-sm text-charcoal py-3 px-4">Customer {idx + 1}</td>
-                      <td className="text-sm text-charcoal py-3 px-4 font-semibold text-blue">$1,200.00</td>
+                      <td className="text-sm text-charcoal py-3 px-4 font-medium">MTH-{1000 + idx}</td>
+                      <td className="text-sm text-charcoal py-3 px-4">Member {idx + 1}</td>
+                      <td className="text-sm text-charcoal py-3 px-4 font-semibold">Zambia</td>
                       <td className="text-sm py-3 px-4">
                         <span className="inline-block px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
-                          Completed
+                          Verified
                         </span>
                       </td>
                       <td className="text-sm text-gray-600 py-3 px-4">Today</td>
@@ -226,7 +226,7 @@ export const AdminDashboard: React.FC = () => {
               </table>
             </div>
             <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-100">
-              <span className="text-sm text-gray-600">Showing 5 of 248 transactions</span>
+              <span className="text-sm text-gray-600">Showing 5 of 248 members</span>
               <div className="flex gap-2">
                 <button className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
                   Previous

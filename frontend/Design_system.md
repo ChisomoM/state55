@@ -4,7 +4,7 @@
 
 - **Quiet Premium**: Refined without ostentation
 - **Generous Spacing**: Never cramped – use padding liberally
-- **Minimal Blue**: Accent only on CTAs/hover (10% rule)
+- **Black & White First**: Black and white carry the brand; colour appears only where it means something (status, alerts)
 - **Clean Typography**: Editorial quality, readable hierarchy
 - **Smooth Motion**: Noticeable but not distracting
 
@@ -14,9 +14,9 @@
 
 ```javascript
 // Define in CSS variables or config
---blue: #3B82F6;         // CTAs, active states
---blue-dark: #1E40AF;    // Hover states
---charcoal: #1F2937;     // Primary text
+--blue: #000000;         // Legacy token name: now black. CTAs, active states
+--blue-dark: #262626;    // Legacy token name: now near-black. Hover states
+--charcoal: #0A0A0A;     // Primary text
 --gray-dark: #374151;    // Body text
 --gray-mid: #6B7280;     // Secondary text
 --gray-light: #E5E7EB;   // Borders
@@ -25,7 +25,8 @@
 ```
 
 **Rules:**
-- Blue only on buttons, hover states, accents
+- Black for buttons, active states and the footer/sidebar; no brand accent colour
+- Green/red/amber only for success, error and warning states
 - Maintain 4.5:1 contrast ratio (WCAG AA)
 - Alternate sections: white → cream → white
 - Text: charcoal (headings) → gray-dark (body) → gray-mid (captions)

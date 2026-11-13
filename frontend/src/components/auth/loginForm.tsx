@@ -1,3 +1,4 @@
+import { Wordmark } from "@/components/Wordmark";
 import { useAuth } from "@/lib/context/useAuth";
 import { Label } from "@radix-ui/react-label";
 import { Eye, EyeClosed, Loader2, Building2 } from "lucide-react";
@@ -50,11 +51,9 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSignUpClick }) => {
       <div className="bg-white rounded-2xl shadow-xl p-6 space-y-4 border border-gray-100">
         <div className="space-y-1">
           {/* <Logo className="h-20 w-auto mx-auto transform hover:scale-105 transition-transform duration-300 "/> */}
-        <img
-          src="/logos/chizotech logo black_.png"
-          alt="ChizoTech Logo"
-className="h-14 w-auto mx-auto transform hover:scale-105 transition-transform duration-300 "
-        ></img>
+        <div className="text-center">
+          <Wordmark className="text-3xl" />
+        </div>
         
         </div>
 
@@ -119,7 +118,7 @@ className="h-14 w-auto mx-auto transform hover:scale-105 transition-transform du
 
           <Button
             type="submit"
-            className="w-full h-10 bg-gradient-to-r from-blue to-blue-dark hover:from-blue-dark hover:to-blue-dark text-white font-medium shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] text-sm"
+            className="w-full h-10 bg-black hover:bg-blue-dark text-white font-medium shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] text-sm"
             disabled={isLoading}
           >
             {isLoading ? (

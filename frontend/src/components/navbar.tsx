@@ -1,3 +1,4 @@
+import { Wordmark } from "./Wordmark";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Button } from "./ui/button";
@@ -9,7 +10,7 @@ export default function Navbar(){
     
     const navItems = [
         {name: 'Home', href: '#home'},
-        {name: 'Features', href: '#features'},
+        {name: 'What We Do', href: '#features'},
         {name: 'About', href: '#about'},
         {name: 'Contact', href: '#contact'}
     ];
@@ -39,11 +40,7 @@ export default function Navbar(){
                 <div className="flex justify-between items-center h-16">
                     {/* Logo */}
                     <a href="/" className="flex-shrink-0">
-                        <img 
-                            src="/logos/chizotech logo black_.png"
-                            alt="SmartHub Logo"
-                            className="h-12 w-auto object-contain"
-                        />
+                        <Wordmark className="text-2xl" />
                     </a>
 
                     {/* Desktop Navigation */}
@@ -53,7 +50,7 @@ export default function Navbar(){
                                 key={item.name}
                                 href={item.href}
                                 className={
-                                    'px-3 py-2 text-sm font-medium transition-colors duration-200 text-gray-700 hover:text-primary-orange hover:bg-gray-50'
+                                    'px-3 py-2 text-sm font-medium transition-colors duration-200 text-gray-700 hover:text-black hover:bg-gray-50'
                                 }
                                 onClick={(e) => handleNavClick(e, item.href)}
                             >
@@ -66,8 +63,8 @@ export default function Navbar(){
 
                     <Button 
                     onClick={onGetStarted}
-                    className="ml-4 bg-gradient-to-r from-gradient-from to-gradient-to px-auto text-white">
-                            Get Started
+                    className="ml-4 bg-black px-6 text-white hover:bg-blue-dark">
+                            Join the community
                         </Button>
 
                     {/* Mobile menu button */}
@@ -96,7 +93,7 @@ export default function Navbar(){
                                     key={item.name}
                                     href={item.href}
                                     className={
-                                        'block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 text-gray-700 hover:text-primary-orange hover:bg-gray-50'
+                                        'block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 text-gray-700 hover:text-black hover:bg-gray-50'
                                     }
                                     onClick={(e) => handleNavClick(e, item.href)}
                                 >
@@ -104,8 +101,8 @@ export default function Navbar(){
                                 </a>
                             ))}
                             <div className="px-3 py-2">
-                                <Button className="w-full">
-                                    Get Started
+                                <Button className="w-full" onClick={onGetStarted}>
+                                    Join the community
                                 </Button>
                             </div>
                         </div>

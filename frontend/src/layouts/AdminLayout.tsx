@@ -1,3 +1,4 @@
+import { Wordmark } from "@/components/Wordmark";
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 import {
@@ -77,13 +78,7 @@ export default function AdminLayout() {
             {/* Logo at the top */}
             <div className="flex-shrink-0 pb-6">
               <div className="flex items-center justify-center">
-                <img
-                  src="/logos/chizotech logo black_.png"
-                  alt="ChizoTech Logo"
-                  className={`transform hover:scale-105 transition-transform duration-300 ${
-                    isCollapsed ? 'h-8 w-8' : 'h-10 w-auto'
-                  }`}
-                />
+                <Wordmark tone="light" className={isCollapsed ? 'text-xl' : 'text-2xl'} />
               </div>
             </div>
 
@@ -94,7 +89,7 @@ export default function AdminLayout() {
                   <SidebarMenuButton 
                     asChild 
                     isActive={isActive('/admin') || isActive('/admin/dashboard')}
-                    className={`text-white hover:bg-blue-dark/20 data-[active=true]:bg-blue-dark/40 data-[active=true]:text-white rounded-lg transition-colors ${
+                    className={`text-white hover:bg-white/10 data-[active=true]:bg-white/20 data-[active=true]:text-white rounded-lg transition-colors ${
                       isCollapsed ? 'justify-center px-2' : ''
                     }`}
                     title={isCollapsed ? 'Dashboard' : ''}
@@ -111,10 +106,10 @@ export default function AdminLayout() {
             {/* User Profile and Logout - Grouped at bottom */}
             <div className="flex-shrink-0 space-y-2">
               {/* User Profile */}
-              <div className="flex items-center gap-3 p-3 rounded-lg bg-blue/20 hover:bg-blue/30 transition-colors">
-                <Avatar className="h-8 w-8 ring-2 ring-blue flex-shrink-0">
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-white/10 hover:bg-white/20 transition-colors">
+                <Avatar className="h-8 w-8 ring-2 ring-white/60 flex-shrink-0">
                   <AvatarImage src="" alt={getUserDisplayName()} />
-                  <AvatarFallback className="bg-blue text-white font-semibold text-xs">
+                  <AvatarFallback className="bg-white text-black font-semibold text-xs">
                     {getInitials()}
                   </AvatarFallback>
                 </Avatar>

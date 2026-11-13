@@ -1,7 +1,7 @@
 import React from "react";
 
 import { LoginForm } from "../../components/auth/loginForm";
-import { Building2, ShieldCheck, FileCheck } from "lucide-react";
+import { Globe2, Users, ShieldCheck } from "lucide-react";
 // import { post } from "@/lib/api/crud";
 
 interface LoginPageProps {
@@ -17,7 +17,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSignUpClick }) => {
 
           {/* <img
             src="U-KYC-logo-stacked.png"
-            alt="Chizo's React Template"
+            alt="Motherland"
             className="w-auto h-20 sm:h-24 md:h-28 mx-auto transform hover:scale-105 transition-transform duration-300"
           /> */}
           {/* <div className="></div> */}
@@ -32,8 +32,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSignUpClick }) => {
 
       {/* Right side - Brand showcase */}
        <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden m-3 lg:m-4 rounded-3xl shadow-2xl">
-        {/* Gradient background - Blue theme */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#2563EB] via-[#1D4ED8] to-[#1E40AF]"></div>
+        {/* Solid black background */}
+        <div className="absolute inset-0 bg-black"></div>
         
         {/* Animated pattern overlay */}
         <div className="absolute inset-0 opacity-10">
@@ -47,10 +47,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSignUpClick }) => {
         <div className="relative z-10 flex flex-col justify-between p-6 lg:p-8 xl:p-10 text-white w-full h-full">
           <div className="space-y-4">
             <h2 className="text-2xl lg:text-3xl xl:text-4xl font-bold leading-tight">
-              React Admin Template
+              Welcome to Motherland
             </h2>
             <p className="text-base lg:text-lg opacity-90 leading-relaxed max-w-lg">
-              A modern, production-ready web application template featuring a professional dashboard, authentication system, and responsive design built with React, TypeScript, Tailwind CSS, and Vite.
+              A Pan-African digital community for the motherland and her diaspora. Sign in to connect, contribute and belong.
             </p>
           </div>
 
@@ -58,11 +58,20 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSignUpClick }) => {
           <div className="grid gap-3 mt-auto">
             <div className="flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-xl p-3 hover:bg-white/20 transition-all duration-300">
               <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center">
-                <Building2 className="w-5 h-5" />
+                <Globe2 className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-semibold text-base">Ready-to-Use Template</h3>
-                <p className="text-xs opacity-80">Pre-built admin dashboard with authentication</p>
+                <h3 className="font-semibold text-base">Culture & Heritage</h3>
+                <p className="text-xs opacity-80">Stories and traditions from across the continent</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-xl p-3 hover:bg-white/20 transition-all duration-300">
+              <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center">
+                <Users className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-base">Community</h3>
+                <p className="text-xs opacity-80">Connect with your people, wherever you are</p>
               </div>
             </div>
             <div className="flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-xl p-3 hover:bg-white/20 transition-all duration-300">
@@ -70,17 +79,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSignUpClick }) => {
                 <ShieldCheck className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-semibold text-base">Modern Tech Stack</h3>
-                <p className="text-xs opacity-80">React, TypeScript, Tailwind CSS, Vite</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-xl p-3 hover:bg-white/20 transition-all duration-300">
-              <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center">
-                <FileCheck className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-base">Production Ready</h3>
-                <p className="text-xs opacity-80">Scalable architecture and best practices</p>
+                <h3 className="font-semibold text-base">Membership & Voice</h3>
+                <p className="text-xs opacity-80">A verifiable membership and a say in our future</p>
               </div>
             </div>
           </div>

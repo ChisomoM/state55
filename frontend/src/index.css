@@ -5,15 +5,15 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --blue: #3B82F6;
-  --blue-dark: #1E40AF;
-  --charcoal: #1F2937;
+  --blue: #000000;
+  --blue-dark: #262626;
+  --charcoal: #0A0A0A;
   --gray-dark: #374151;
   --gray-mid: #6B7280;
   --gray-light: #E5E7EB;
   --cream: #F9FAFB;
   --white: #FFFFFF;
-  --font-inter: 'Inter', sans-serif;
+  --font-sora: 'Sora', sans-serif;
 }
 
 .dark {
@@ -38,14 +38,14 @@
   --ring: oklch(0.439 0 0);
   --font-weight-medium: 500;
   --font-weight-normal: 400;
-  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-1: oklch(0.985 0 0);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary: oklch(0.985 0 0);
   --sidebar-primary-foreground: oklch(0.985 0 0);
   --sidebar-accent: oklch(0.269 0 0);
   --sidebar-accent-foreground: oklch(0.985 0 0);
@@ -66,7 +66,7 @@
     color: var(--foreground);
       min-width: 320px;
   min-height: 100vh;
-    font-family: var(--font-inter);
+    font-family: var(--font-sora);
     font-weight: 400;
     letter-spacing: -0.01em;
   }
@@ -129,85 +129,6 @@
 
 html {
   font-size: var(--font-size);
-}
-
-/* Orange theme colors for SmartHub */
-@layer utilities {
-  .bg-orange-25 {
-    background-color: #fffcf5;
-  }
-  
-  .bg-orange-50 {
-    background-color: #fff7ed;
-  }
-  
-  .bg-orange-100 {
-    background-color: #ffedd5;
-  }
-  
-  .bg-orange-500 {
-    background-color: #f97316;
-  }
-  
-  .bg-orange-600 {
-    background-color: #ea580c;
-  }
-  
-  .text-orange-500 {
-    color: #f97316;
-  }
-  
-  .text-orange-600 {
-    color: #ea580c;
-  }
-  
-  .text-orange-700 {
-    color: #c2410c;
-  }
-  
-  .border-orange-100 {
-    border-color: #ffedd5;
-  }
-  
-  .border-orange-200 {
-    border-color: #fed7aa;
-  }
-  
-  .border-orange-300 {
-    border-color: #fdba74;
-  }
-  
-  .border-orange-500 {
-    border-color: #f97316;
-  }
-  
-  .hover\:bg-orange-50:hover {
-    background-color: #fff7ed;
-  }
-  
-  .hover\:bg-orange-100:hover {
-    background-color: #ffedd5;
-  }
-  
-  .hover\:bg-orange-600:hover {
-    background-color: #ea580c;
-  }
-  
-  .hover\:text-orange-500:hover {
-    color: #f97316;
-  }
-  
-  .hover\:border-orange-200:hover {
-    border-color: #fed7aa;
-  }
-  
-  .hover\:border-orange-300:hover {
-    border-color: #fdba74;
-  }
-  
-  .ring-orange-200 {
-    --tw-ring-color: #fed7aa;
-  }
 }
 
 /* Trusted logos marquee styles */
