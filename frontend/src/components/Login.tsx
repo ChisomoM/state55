@@ -1,13 +1,8 @@
-
-// import { CorporateRegistrationModal } from './CorporateRegistrationModal';
+import { useNavigate } from 'react-router-dom';
 import { LoginPage } from '../(admin)/admin/LoginPage';
 
 export default function Login() {
-  return (
-    <>
-      <LoginPage onSignUpClick={() => {}} />
-        {/* onOpenChange={setModalOpen} */}
-      {/* /> */}
-      </>
-  );
+  const navigate = useNavigate();
+
+  return <LoginPage onSignUpClick={() => navigate('/register')} />;
 }

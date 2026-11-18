@@ -1,46 +1,110 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
+  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
+  darkMode: ["selector", '[data-theme="dark"]'],
   theme: {
+    screens: { sm: "640px", md: "768px", lg: "1024px", xl: "1280px" },
     extend: {
       colors: {
-        blue: '#000000',
-        'blue-dark': '#262626',
-        charcoal: '#0A0A0A',
-        'gray-dark': '#374151',
-        'gray-mid': '#6B7280',
-        'gray-light': '#E5E7EB',
-        cream: '#F9FAFB',
-        white: '#FFFFFF',
-        sidebar: {
-          DEFAULT: 'hsl(var(--sidebar-background))',
-          foreground: 'hsl(var(--sidebar-foreground))',
-          primary: 'hsl(var(--sidebar-primary))',
-          'primary-foreground' : 'hsl(var(--sidebar-accent))',
-          accent: 'hsl(var(--sidebar-accent))',
-          'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
-          border: 'hsl(var(--sidebar-border))',
-          ring: 'hsl(var(--sidebar-ring))',
-        }
+        surface: {
+          DEFAULT: "var(--surface)",
+          raised: "var(--surface-raised)",
+          sunken: "var(--surface-sunken)",
+          inverse: "var(--surface-inverse)",
+        },
+        ink: { DEFAULT: "var(--ink)", muted: "var(--ink-muted)", inverse: "var(--ink-inverse)" },
+        line: { DEFAULT: "var(--line)", strong: "var(--line-strong)" },
+        brand: { DEFAULT: "var(--brand)", strong: "var(--brand-strong)", soft: "var(--brand-soft)" },
+        "on-brand": "var(--on-brand)",
+        accent: { DEFAULT: "var(--accent)", strong: "var(--accent-strong)", soft: "var(--accent-soft)" },
+        "on-accent": "var(--on-accent)",
+        success: { DEFAULT: "var(--success)", soft: "var(--success-soft)" },
+        info: { DEFAULT: "var(--info)", soft: "var(--info-soft)" },
+        danger: { DEFAULT: "var(--danger)", soft: "var(--danger-soft)" },
+        warning: { DEFAULT: "var(--warning)", soft: "var(--warning-soft)" },
+        focus: "var(--focus)",
+
+        // Raw palette: brand graphics only.
+        clay: "#B5381F",
+        ochre: "#E0A030",
+        baobab: "#1F6B45",
+        lake: "#0D6B64",
+        earth: "#1E1410",
+        sand: "#F5EDE0",
+        ivory: "#FBF7F0",
+
+        // Legacy names from the old template, kept as aliases so stray usages follow the new palette.
+        charcoal: "var(--ink)",
+        "gray-mid": "var(--ink-muted)",
+        "gray-light": "var(--line)",
+        cream: "var(--surface-sunken)",
+        blue: "var(--info)",
+        "blue-dark": "var(--brand-strong)",
+
+        // shadcn token names mapped onto the Motherland tokens, so the stock ui/ components work.
+        background: "var(--surface)",
+        foreground: "var(--ink)",
+        card: { DEFAULT: "var(--surface-raised)", foreground: "var(--ink)" },
+        popover: { DEFAULT: "var(--surface-raised)", foreground: "var(--ink)" },
+        primary: { DEFAULT: "var(--brand)", foreground: "var(--on-brand)" },
+        secondary: { DEFAULT: "var(--surface-sunken)", foreground: "var(--ink)" },
+        muted: { DEFAULT: "var(--surface-sunken)", foreground: "var(--ink-muted)" },
+        destructive: { DEFAULT: "var(--danger)", foreground: "#ffffff" },
+        border: "var(--line)",
+        input: "var(--line-strong)",
+        ring: "var(--focus)",
       },
       fontFamily: {
-        sora: ['Sora', 'sans-serif'],
+        display: ["Archivo", '"Arial Narrow"', "Arial", "sans-serif"],
+        sans: ['"Noto Sans"', '"Segoe UI"', "Roboto", "Arial", "sans-serif"],
+        serif: ['"Noto Serif"', "Georgia", "serif"],
+        mono: ['"JetBrains Mono"', '"Fira Code"', "ui-monospace", "monospace"],
       },
       fontSize: {
-        'hero-title': '92px',
-        'hero-subtitle': '16px',
-        'stats-number': '36px',
-        'stats-label': '20px',
-        'nav-text': '16px',
+        "display-xs": ["1.5rem", { lineHeight: "2rem", letterSpacing: "-0.01em", fontWeight: "700" }],
+        "display-sm": ["1.875rem", { lineHeight: "2.375rem", letterSpacing: "-0.01em", fontWeight: "700" }],
+        "display-md": ["2.25rem", { lineHeight: "2.75rem", letterSpacing: "-0.02em", fontWeight: "800" }],
+        "display-lg": ["3rem", { lineHeight: "3.5rem", letterSpacing: "-0.02em", fontWeight: "800" }],
+        "display-xl": ["4.5rem", { lineHeight: "4.75rem", letterSpacing: "-0.03em", fontWeight: "800" }],
+        "text-xs": ["0.75rem", { lineHeight: "1.125rem" }],
+        "text-sm": ["0.875rem", { lineHeight: "1.25rem" }],
+        "text-md": ["1rem", { lineHeight: "1.5rem" }],
+        "text-lg": ["1.125rem", { lineHeight: "1.75rem" }],
+        "text-xl": ["1.25rem", { lineHeight: "1.875rem" }],
       },
-      spacing: {
-        'hero-top': '200px',
-      }
+      // Radius follows the reference scale: controls 12px, cards 16px.
+      borderRadius: {
+        xs: "4px",
+        sm: "6px",
+        md: "8px",
+        lg: "10px",
+        xl: "12px",
+        "2xl": "16px",
+        "3xl": "20px",
+      },
+      boxShadow: {
+        1: "var(--shadow-1)",
+        2: "var(--shadow-2)",
+        3: "var(--shadow-3)",
+        card: "var(--shadow-card)",
+        "card-hover": "var(--shadow-card-hover)",
+        cta: "var(--shadow-cta)",
+      },
+      maxWidth: { content: "1280px" },
+      transitionTimingFunction: { spring: "cubic-bezier(0.16, 1, 0.3, 1)" },
+      keyframes: {
+        "fade-in-up": { "0%": { opacity: "0", transform: "translateY(8px)" }, "100%": { opacity: "1", transform: "translateY(0)" } },
+        "pulse-ring": {
+          "0%": { boxShadow: "0 0 0 0 rgba(31,107,69,0.4)" },
+          "70%": { boxShadow: "0 0 0 8px rgba(31,107,69,0)" },
+          "100%": { boxShadow: "0 0 0 0 rgba(31,107,69,0)" },
+        },
+      },
+      animation: {
+        "fade-in-up": "fade-in-up 300ms cubic-bezier(0.16, 1, 0.3, 1)",
+        "pulse-ring": "pulse-ring 2s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite",
+      },
     },
   },
   plugins: [],
-}
-
+};

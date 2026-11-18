@@ -35,6 +35,12 @@ func Error(message string) Response {
 	}
 }
 
+// ErrorCode returns an error response carrying a stable machine-readable code in data.code,
+// which clients switch on instead of parsing the message.
+func ErrorCode(code, message string) Response {
+	return ErrorWithData(message, map[string]string{"code": code})
+}
+
 // ErrorWithData returns an error response with additional context (e.g., validation errors).
 func ErrorWithData(message string, data interface{}) Response {
 	return Response{

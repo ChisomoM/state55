@@ -3,6 +3,7 @@ package global
 import (
 	config "backend/pkg"
 
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 )
 
@@ -26,6 +27,7 @@ type App struct {
 	// Use interfaces to allow swapping implementations per project
 	Email  EmailSender
 	Upload FileUploader
+	Redis  *redis.Client // Shared Redis connection (cache, rate limits, queue backing store)
 }
 
 // EmailSender is an interface for email services.
@@ -41,7 +43,14 @@ type FileUploader interface {
 	Upload(bucketName, objectName string, data []byte) (url string, err error)
 	Download(bucketName, objectName string) ([]byte, error)
 	Delete(bucketName, objectName string) error
+	// GeneratePresignedURL returns a time-limited download URL.
 	GeneratePresignedURL(bucketName, objectName string, expirySeconds int) (url string, err error)
+	// PresignedUploadURL returns a time-limited URL a client can PUT a file to directly.
+	PresignedUploadURL(bucketName, objectName string, expirySeconds int) (url string, err error)
+	// PublicBucket and PrivateBucket name the two buckets: public is anonymous-read,
+	// private is reachable only through presigned URLs.
+	PublicBucket() string
+	PrivateBucket() string
 }
 
 // New creates a new App with all infrastructure services initialized.
@@ -51,11 +60,13 @@ func New(
 	logger *zap.SugaredLogger,
 	emailService EmailSender,
 	uploadService FileUploader,
+	redisClient *redis.Client,
 ) *App {
 	return &App{
 		Config: cfg,
 		Logger: logger,
 		Email:  emailService,
 		Upload: uploadService,
+		Redis:  redisClient,
 	}
 }

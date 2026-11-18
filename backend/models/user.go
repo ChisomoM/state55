@@ -2,6 +2,7 @@ package models
 
 import (
 	"database/sql"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -14,6 +15,7 @@ type User struct {
 	FirstName           string                   `json:"first_name"`
 	LastName            string                   `json:"last_name"`
 	IsActive            bool                     `json:"is_active" gorm:"default:true"`
+	EmailVerifiedAt     *time.Time               `json:"email_verified_at,omitempty"`
 	RoleSlug            string                   `json:"role_slug" gorm:"index"` // e.g., "admin", "user", "viewer"
 	PermissionOverrides []UserPermissionOverride `json:"permission_overrides,omitempty" gorm:"foreignKey:UserID"`
 }
@@ -21,7 +23,7 @@ type User struct {
 // Role represents a collection of permissions that can be assigned to users.
 type Role struct {
 	BaseModel
-	TenantID    string       `json:"tenant_id" gorm:"index;not null"`
+	TenantID    uuid.UUID    `json:"tenant_id" gorm:"type:uuid;not null;uniqueIndex:idx_tenant_role_slug"`
 	Name        string       `json:"name"`
 	Slug        string       `json:"slug" gorm:"uniqueIndex:idx_tenant_role_slug"`
 	Description string       `json:"description" gorm:"type:text"`
@@ -34,9 +36,9 @@ type Role struct {
 type Permission struct {
 	BaseModel
 	Code        string `json:"code" gorm:"uniqueIndex:idx_tenant_permission_code"`
-	TenantID    string `json:"tenant_id" gorm:"index;not null"`
-	Description string `json:"description" gorm:"type:text"`
-	Category    string `json:"category"` // e.g., "documents", "users", "admin"
+	TenantID    uuid.UUID `json:"tenant_id" gorm:"type:uuid;not null;uniqueIndex:idx_tenant_permission_code"`
+	Description string    `json:"description" gorm:"type:text"`
+	Category    string    `json:"category"` // e.g., "documents", "users", "admin"
 }
 
 // UserPermissionOverride allows fine-grained permission grants/denials per user without changing their role.

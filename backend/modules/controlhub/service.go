@@ -3,6 +3,7 @@ package controlhub
 import (
 	"backend/global"
 	"backend/models"
+	"backend/pkg/authtoken"
 	"errors"
 	"time"
 
@@ -83,6 +84,7 @@ func (s *service) RefreshToken(db *gorm.DB, refreshToken string) (*CompanyAdminL
 func (s *service) generateControlHubJWT(admin *models.CompanyAdmin) (string, error) {
 	claims := jwt.MapClaims{
 		"sub":       admin.ID.String(),
+		"typ":       authtoken.TypeAccess,
 		"email":     admin.Email,
 		"role":      "controlhub",                         // Platform-level role
 		"level":     "company_admin",                      // Access level
@@ -90,6 +92,5 @@ func (s *service) generateControlHubJWT(admin *models.CompanyAdmin) (string, err
 		"exp":       time.Now().Add(4 * time.Hour).Unix(), // 4 hours
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte(s.app.Config.JWTSecret))
+	return authtoken.Sign(s.app.Config.JWTSecret, claims)
 }

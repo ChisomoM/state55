@@ -6,13 +6,8 @@ export function TopNavBar() {
 
   // Get user display name and email
   const getUserDisplayName = () => {
-    if (user?.team_member) {
-      return `${user.team_member.first_name} ${user.team_member.last_name}`;
-    }
-    if (user?.firstName && user?.lastName) {
-      return `${user.firstName} ${user.lastName}`;
-    }
-    return 'User';
+    const name = [user?.firstName, user?.lastName].filter(Boolean).join(' ');
+    return name || 'User';
   };
 
   const getUserEmail = () => {

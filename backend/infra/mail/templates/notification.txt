@@ -1,0 +1,7 @@
+Hello{{if .Name}} {{.Name}}{{end}},
+
+{{.Body}}
+{{if .Link}}
+{{.LinkLabel}}: {{.Link}}
+{{end}}
+State 55 Pan-African Digital Community

@@ -3,8 +3,8 @@
 help:
 	@echo "Available commands:"
 	@echo "  make setup        - Install dependencies"
-	@echo "  make db-up        - Start PostgreSQL"
-	@echo "  make db-down      - Stop PostgreSQL"
+	@echo "  make db-up        - Start Redis, MinIO and Mailpit (PostgreSQL only with --profile db)"
+	@echo "  make db-down      - Stop them"
 	@echo "  make run          - Run the server"
 	@echo "  make build        - Build binary"
 	@echo "  make test         - Run tests"
@@ -17,16 +17,16 @@ setup:
 	go mod tidy
 
 db-up:
-	docker-compose up -d postgres
+	docker-compose up -d
 
 db-down:
 	docker-compose down
 
 run: db-up
-	go run main.go
+	go run .
 
 build:
-	go build -o bin/server main.go
+	go build -o bin/server .
 
 test:
 	go test -v ./...

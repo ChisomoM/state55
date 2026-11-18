@@ -1,9 +1,10 @@
 package middleware
 
 import (
-	"backend/models"
 	"encoding/json"
 	"strings"
+
+	"backend/models"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -11,7 +12,9 @@ import (
 	"gorm.io/gorm"
 )
 
-// AuditMiddleware logs state-changing operations (POST, PUT, PATCH, DELETE).
+// AuditMiddleware logs state-changing operations (POST, PUT, PATCH, DELETE) after they run, so
+// each entry records the outcome (HTTP status). Failed and denied attempts are logged too.
+// Request bodies are never logged (they can hold passwords and tokens).
 // Attach this to route groups to automatically log all mutations.
 func AuditMiddleware(db *gorm.DB, logger *zap.SugaredLogger) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
@@ -23,66 +26,61 @@ func AuditMiddleware(db *gorm.DB, logger *zap.SugaredLogger) echo.MiddlewareFunc
 				return next(c)
 			}
 
-			userID, _ := c.Get("user_id").(string)
-			tenantID, _ := c.Get("tenant_id").(string)
-
-			if userID == "" || tenantID == "" {
+			userID, err := uuid.Parse(asString(c.Get("user_id")))
+			if err != nil {
+				return next(c)
+			}
+			tenantID, err := uuid.Parse(asString(c.Get("tenant_id")))
+			if err != nil {
 				return next(c)
 			}
 
-			// Extract action from request context or route
-			action := req.Method
-			resource := extractResourceFromPath(req.URL.Path)
-			resourceID := extractIDFromPath(req.URL.Path)
+			// Run the handler first so the outcome is known.
+			handlerErr := next(c)
 
-			// Log the audit entry
-			auditLog := models.AuditLog{
-				TenantBaseModel: models.TenantBaseModel{
-					TenantID: tenantID,
-				},
-				UserID:     uuid.MustParse(userID),
-				Action:     action,
-				Resource:   resource,
-				ResourceID: resourceID,
-				IPAddress:  c.RealIP(),
-				UserAgent:  req.Header.Get("User-Agent"),
-				Details: func() string {
-					body := map[string]interface{}{
-						"path":   req.URL.Path,
-						"method": req.Method,
-					}
-					b, _ := json.Marshal(body)
-					return string(b)
-				}(),
+			status := c.Response().Status
+			if he, ok := handlerErr.(*echo.HTTPError); ok {
+				status = he.Code
 			}
 
-			if err := db.Create(&auditLog).Error; err != nil {
+			details, _ := json.Marshal(map[string]interface{}{
+				"path":   req.URL.Path,
+				"route":  c.Path(), // pattern, e.g. /api/v1/users/:id
+				"status": status,
+			})
+
+			auditLog := models.AuditLog{
+				TenantBaseModel: models.TenantBaseModel{TenantID: tenantID},
+				UserID:          userID,
+				Action:          req.Method,
+				Resource:        resourceFromPath(req.URL.Path),
+				ResourceID:      c.Param("id"),
+				IPAddress:       c.RealIP(),
+				UserAgent:       req.Header.Get("User-Agent"),
+				Details:         string(details),
+			}
+
+			if err := db.Session(&gorm.Session{NewDB: true}).Create(&auditLog).Error; err != nil {
 				logger.Warnf("Failed to log audit: %v", err)
 			}
 
-			return next(c)
+			return handlerErr
 		}
 	}
 }
 
-// extractResourceFromPath extracts the resource type from the URL path.
-// e.g., "/api/v1/users/123" -> "users"
-func extractResourceFromPath(path string) string {
+// resourceFromPath extracts the resource type from the URL path, skipping the /api/v1 prefix and
+// the "admin" namespace. e.g. "/api/v1/users/123" -> "users", "/api/v1/admin/roles/7" -> "roles".
+func resourceFromPath(path string) string {
 	parts := split(path, "/")
-	for i, part := range parts {
-		if part == "api" && i+2 < len(parts) {
-			return parts[i+2]
-		}
+	if len(parts) >= 2 && parts[0] == "api" {
+		parts = parts[2:] // drop "api", "v1"
 	}
-	return ""
-}
-
-// extractIDFromPath extracts the resource ID from the URL path.
-// e.g., "/api/v1/users/123" -> "123"
-func extractIDFromPath(path string) string {
-	parts := split(path, "/")
+	if len(parts) > 0 && parts[0] == "admin" {
+		parts = parts[1:]
+	}
 	if len(parts) > 0 {
-		return parts[len(parts)-1]
+		return parts[0]
 	}
 	return ""
 }

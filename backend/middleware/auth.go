@@ -1,17 +1,26 @@
 package middleware
 
 import (
-	config "backend/pkg"
-	"fmt"
 	"net/http"
 	"strings"
-	"time"
 
-	"github.com/golang-jwt/jwt/v5"
+	config "backend/pkg"
+	"backend/pkg/authtoken"
+
 	"github.com/labstack/echo/v4"
 )
 
-// JWTMiddleware validates the JWT token and extracts claims into the Echo context.
+// BearerToken extracts the token from an "Authorization: Bearer <token>" header.
+func BearerToken(c echo.Context) (string, bool) {
+	parts := strings.Split(c.Request().Header.Get("Authorization"), " ")
+	if len(parts) != 2 || parts[0] != "Bearer" || parts[1] == "" {
+		return "", false
+	}
+	return parts[1], true
+}
+
+// JWTMiddleware validates the access token and extracts claims into the Echo context.
+// Only tokens of type "access" are accepted: refresh tokens are rejected.
 // This middleware should run before TenantMiddleware.
 func JWTMiddleware(cfg *config.Config) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
@@ -21,41 +30,15 @@ func JWTMiddleware(cfg *config.Config) echo.MiddlewareFunc {
 				return next(c)
 			}
 
-			authHeader := c.Request().Header.Get("Authorization")
-			if authHeader == "" {
-				return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Missing authorization header"})
-			}
-
-			// Check if the header format is "Bearer <token>"
-			parts := strings.Split(authHeader, " ")
-			if len(parts) != 2 || parts[0] != "Bearer" {
-				return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid authorization format"})
-			}
-
-			tokenString := parts[1]
-
-			// Parse and validate the token
-			token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-					return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-				}
-				return []byte(cfg.JWTSecret), nil
-			})
-
-			if err != nil || !token.Valid {
-				return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid or expired token"})
-			}
-
-			claims, ok := token.Claims.(jwt.MapClaims)
+			tokenString, ok := BearerToken(c)
 			if !ok {
-				return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid token claims"})
+				return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Missing or invalid authorization header"})
 			}
 
-			// Check expiration
-			if exp, ok := claims["exp"].(float64); ok {
-				if time.Now().Unix() > int64(exp) {
-					return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Token expired"})
-				}
+			// Verifies signature (HS256 only), expiry, and that this is an access token.
+			claims, err := authtoken.Parse(cfg.JWTSecret, tokenString, authtoken.TypeAccess)
+			if err != nil {
+				return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid or expired token"})
 			}
 
 			// Set claims to context for downstream handlers and middleware

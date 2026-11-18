@@ -1,10 +1,28 @@
+// Backend routes. Keys are used with the helpers in ./crud (post, list, ...).
+// Paths must start with "/" (the base URL has no trailing slash).
 export const API: Record<string, string> = {
-  // ADMIN END-POINT
-  ADMIN_LOGIN: "admin/login",
-  // MERCHANT END-POINTS
-  LOGIN: "login",
-  REGISTER: "register",
-  REFRESH_TOKEN: "refresh-token",
+  // Public auth (backend/routes/routes.go: SetupAuthRoutes)
+  LOGIN: "/api/v1/auth/login",
+  REGISTER: "/api/v1/auth/register",
+  REFRESH_TOKEN: "/api/v1/auth/refresh",
+  VERIFY_EMAIL: "/api/v1/auth/verify-email",
+  RESEND_VERIFICATION: "/api/v1/auth/resend-verification",
+  FORGOT_PASSWORD: "/api/v1/auth/forgot-password",
+  RESET_PASSWORD: "/api/v1/auth/reset-password",
+
+  // Signed-in user
+  ME: "/api/v1/users/me",
+  ME_PASSWORD: "/api/v1/users/me/password",
+  NOTIFICATION_PREFS: "/api/v1/notifications/preferences",
+
+  // Administration (permission-protected on the backend)
+  USERS: "/api/v1/users",
+  USER: "/api/v1/users/:id",
+  ROLES: "/api/v1/admin/roles",
+  ROLE: "/api/v1/admin/roles/:id",
+  PERMISSIONS: "/api/v1/admin/permissions",
+  AUDIT_LOGS: "/api/v1/admin/audit-logs",
+  EMAIL_LOG: "/api/v1/admin/email-log",
 };
 
 export const getRoute = (val: string): string => {

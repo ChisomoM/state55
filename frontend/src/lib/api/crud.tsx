@@ -1,71 +1,133 @@
-// import { resetLogoutPromptTimer } from "../context/admin";
-import { Storage } from "../storage";
 import { API, getRoute, pipe } from "./end_points";
-// import { getAuthHeader } from "./auth";
+import {
+  SESSION_EXPIRED_EVENT,
+  clearSession,
+  readTokens,
+  writeTokens,
+} from "../auth/tokenStore";
 
-const ROUTING_URL: string = import.meta.env.VITE_BACKEND_URL as string;
+// In dev the backend runs on :8080. In production set VITE_BACKEND_URL (no trailing slash).
+const BASE_URL: string = (
+  (import.meta.env.VITE_BACKEND_URL as string | undefined) ||
+  (import.meta.env.DEV ? "http://localhost:8080" : "")
+).replace(/\/+$/, "");
 
-// Storage key for auth tokens (matches AuthContext)
-const AUTH_TOKENS_KEY = 'auth_tokens';
+// Optional: pin the tenant for multi-tenant backends. Omit to use the backend's default tenant.
+const TENANT_ID = import.meta.env.VITE_TENANT_ID as string | undefined;
 
-// Get access token from localStorage (used by AuthContext)
-const getAccessTokenFromStorage = (): string | null => {
-  try {
-    if (typeof window === 'undefined') return null;
-    
-    const tokensJson = localStorage.getItem(AUTH_TOKENS_KEY);
-    if (!tokensJson) return null;
-    
-    const tokens = JSON.parse(tokensJson);
-    return tokens.token || tokens.access_token || null;
-  } catch (err) {
-    console.error('Failed to get access token from storage:', err);
-    return null;
+// Endpoints that must not carry the stored access token and must not trigger a token refresh on 401.
+const PUBLIC_KEYS = new Set([
+  "LOGIN",
+  "REGISTER",
+  "REFRESH_TOKEN",
+  "VERIFY_EMAIL",
+  "RESEND_VERIFICATION",
+  "FORGOT_PASSWORD",
+  "RESET_PASSWORD",
+]);
+
+/**
+ * Error thrown for any failed API call. `code` is the backend's stable error code
+ * (e.g. "email_not_verified", "invalid_credentials"); switch on it instead of the message.
+ */
+export class ApiError extends Error {
+  status: number;
+  code?: string;
+
+  constructor(message: string, status: number, code?: string) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.code = code;
   }
+}
+
+const buildUrl = (
+  key: string,
+  params: Record<string, string> = {},
+  query: Record<string, string> = {}
+) => {
+  const q = new URLSearchParams(query).toString();
+  return `${BASE_URL}${pipe(getRoute(key), params)}${q ? `?${q}` : ""}`;
 };
 
-// First, let's create a function to refresh the token
-const refreshAccessToken = async () => {
-  try {
-    // Get refresh token from cookies
-    const refreshToken = document.cookie.replace(
-      /(?:(?:^|.*;\s*)refreshToken\s*=\s*([^;]*).*$)|^.*$/,
-      "$1"
-    );
-
-    if (!refreshToken) {
-      throw new Error("No refresh token available in cookies");
-    }
-    // Try to refresh the token
-    const response = await fetch(`${ROUTING_URL}${getRoute("REFRESH_TOKEN")}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({ refresh_token: refreshToken }),
-    });
-    if (!response.ok) {
-      throw new Error("Failed to refresh token");
-    }
-    const data = await response.json();
-    if (data?.access_token) {
-      Storage.setItem("accessToken", data.access_token);
-      return data.access_token;
-    }
-    if (data?.error) {
-      throw new Error(data.error);
-    }
-    throw new Error("Failed to refresh token");
-  } catch (error) {
-    console.error("Token refresh error:", error);
-    sessionStorage.removeItem("accessToken");
-    document.cookie =
-      "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    // Only throw, don't redirect here. Let fetchData handle logout.
-    throw error;
-  }
+const buildHeaders = (accessToken: string | null, extra: Record<string, string> = {}) => {
+  const h = new Headers();
+  h.set("Content-Type", "application/json");
+  if (accessToken) h.set("Authorization", `Bearer ${accessToken}`);
+  if (TENANT_ID) h.set("X-Tenant-ID", TENANT_ID);
+  // Explicit headers win over the defaults above.
+  Object.entries(extra).forEach(([k, v]) => h.set(k, String(v)));
+  return h;
 };
 
-// Modify fetchData to handle token refresh
+// --- Token refresh --------------------------------------------------------------------------
+
+let refreshInFlight: Promise<string> | null = null;
+
+/**
+ * Exchanges the stored refresh token for a new token pair. Concurrent callers share one request,
+ * because the backend rotates refresh tokens and a second parallel call would use a stale one.
+ */
+const refreshAccessToken = (): Promise<string> => {
+  refreshInFlight ??= doRefresh().finally(() => {
+    refreshInFlight = null;
+  });
+  return refreshInFlight;
+};
+
+const doRefresh = async (): Promise<string> => {
+  const current = readTokens();
+  if (!current?.refresh_token) {
+    throw new ApiError("No refresh token available", 401, "session_expired");
+  }
+
+  const res = await fetch(buildUrl("REFRESH_TOKEN"), {
+    method: "POST",
+    headers: buildHeaders(null),
+    body: JSON.stringify({ refresh_token: current.refresh_token }),
+  });
+  const payload = await res.json().catch(() => null);
+
+  if (!res.ok || payload?.status !== 0 || !payload?.data?.access_token) {
+    throw new ApiError("Failed to refresh token", res.status, "session_expired");
+  }
+
+  writeTokens({
+    access_token: payload.data.access_token,
+    refresh_token: payload.data.refresh_token,
+  });
+  return payload.data.access_token as string;
+};
+
+/** Exposed for callers that need to force a refresh. */
+export const refreshToken = refreshAccessToken;
+
+// --- Requests -------------------------------------------------------------------------------
+
+/** Turns a response into its `data` payload, or throws an ApiError. */
+const parseResponse = async (res: Response) => {
+  if (res.status === 204) return;
+
+  const payload = await res.json().catch(() => null);
+
+  if (res.ok && payload?.status === 0) {
+    return payload.data;
+  }
+
+  if (res.status === 429) {
+    throw new ApiError("Too many requests. Try again later", 429, "rate_limited");
+  }
+
+  throw new ApiError(
+    payload?.message ||
+      payload?.error ||
+      `Error: ${res.status} ${res.statusText}`,
+    res.status,
+    payload?.data?.code
+  );
+};
+
 export const fetchData = async (
   key: string,
   method: string,
@@ -74,114 +136,44 @@ export const fetchData = async (
   query: Record<string, string> = {},
   headers: Record<string, string> = {}
 ) => {
-  const h = new Headers();
-  h.append("Content-Type", "application/json");
+  const isPublic = PUBLIC_KEYS.has(key);
+  const url = buildUrl(key, params, query);
 
-  // Read tokens from localStorage (AuthContext storage)
-  // Skip for login/register endpoints
-  if (typeof window !== "undefined" && !["LOGIN", "ADMIN_LOGIN", "REGISTER"].includes(key)) {
-    const accessToken = getAccessTokenFromStorage();
-    if (accessToken) {
-      h.append("Authorization", `Bearer ${accessToken}`);
-    }
-  }
+  const send = (accessToken: string | null) =>
+    fetch(url, {
+      method,
+      headers: buildHeaders(accessToken, headers),
+      body: body ? JSON.stringify(body) : undefined,
+    });
 
-  Object.entries(headers).forEach(([key, value]) => {
-    h.append(key, String(value));
-  });
+  let res = await send(isPublic ? null : (readTokens()?.access_token ?? null));
 
-  const q = new URLSearchParams(query).toString();
-  const url = `${ROUTING_URL}${pipe(getRoute(key), params)}${q ? `?${q}` : ""}`;
-
-  const options: RequestInit = {
-    method,
-    headers: h,
-    credentials: "include",
-  };
-
-  if (body) {
-    options.body = JSON.stringify(body);
-  }
-
-  let res = await fetch(url, options);
-
-  if (res.ok) {
-    if (res.status === 204) {
-      return;
-    }
-    const result = await res.json();
-    if (result.status === 0) {
-      return result.data;
-    } else if (result.success !== undefined) {
-      if (result.success) {
-        return result.data || result;
-      } else {
-        throw new Error(result.message || "Operation failed");
-      }
-    } else if (result.status !== undefined && result.status !== 0) {
-      throw new Error(result.message || "Operation failed");
-    } else {
-      return result.data || result;
-    }
-  }
-
-  // If the response is 401, try to refresh the token and retry the request once
-  // Skip token refresh for login endpoints - let them fail naturally
-  if (res.status === 401 && !["LOGIN", "ADMIN_LOGIN", "REGISTER"].includes(key)) {
+  // Access tokens are short-lived: on 401 refresh once and retry.
+  if (res.status === 401 && !isPublic) {
     try {
-      const newAccessToken = await refreshAccessToken();
-      Storage.setItem("accessToken", newAccessToken);
-      h.set("Authorization", `Bearer ${newAccessToken}`);
-      res = await fetch(url, options);
-      if (res.ok) {
-        if (res.status === 204) {
-          return;
-        }
-        const retryResult = await res.json();
-        if (retryResult.status !== 0) {
-          throw new Error(retryResult.message);
-        }
-        return retryResult.data;
-      }
-    } catch (refreshError) {
-      console.error('Token refresh failed:', refreshError);
-      sessionStorage.removeItem("accessToken");
-      document.cookie =
-        "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-      // UI should catch this and show a toast
-      throw new Error("SESSION_EXPIRED");
+      res = await send(await refreshAccessToken());
+    } catch {
+      clearSession();
+      window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT));
+      throw new ApiError(
+        "Your session has expired. Please sign in again.",
+        401,
+        "session_expired"
+      );
     }
   }
 
-    if (res.status === 429) {
-      throw new Error("Too many requests. Try again later")
-    }
-
-  // Extract error message from API response
-  try {
-    const errorData = await res.json();
-    // Support multiple error response formats
-    const errorMessage = errorData?.message || errorData?.error || `Error: ${res.status} ${res.statusText}`;
-    throw new Error(errorMessage);
-  } catch (err) {
-    // If JSON parsing fails or it's already an error, handle it
-    if (err instanceof Error) {
-      throw err;
-    }
-    throw new Error(`Error: ${res.status} ${res.statusText}`);
-  }
+  return parseResponse(res);
 };
-
-// Export the refresh token function if needed elsewhere
-export const refreshToken = refreshAccessToken;
 
 type Endpoints = keyof typeof API;
 export const post = (
   key: Endpoints,
   data: unknown,
-  params: Record<string, string> = {}
+  params: Record<string, string> = {},
+  headers: Record<string, string> = {}
 ) => {
-  return fetchData(key, "POST", params, data);
+  return fetchData(key, "POST", params, data, {}, headers);
 };
 
 export const list = (
@@ -214,41 +206,35 @@ export const toggleProductAvailability = (
   );
 };
 
+/** Downloads a file from a GET endpoint (uses Content-Disposition for the filename). */
 export const file = async (
   key: Endpoints,
   params: Record<string, string> = {},
   query: Record<string, string> = {},
   headers: Record<string, string> | null = null
 ) => {
-  const h = new Headers();
-  h.append("Content-Type", "application/json");
+  const url = buildUrl(key, params, query);
+  const send = (accessToken: string | null) =>
+    fetch(url, {
+      method: "GET",
+      headers: buildHeaders(accessToken, headers ?? {}),
+    });
 
-  if (typeof window != "undefined" && !["ADMIN_LOGIN"].includes(key)) {
-    const accessToken = Storage.getItem("accessToken");
-    if (accessToken) {
-      // console.log("access token:", accessToken);
-      h.append("Authorization", `Bearer ${accessToken}`);
-      // resetLogoutPromptTimer();
+  let res = await send(readTokens()?.access_token ?? null);
+
+  if (res.status === 401) {
+    try {
+      res = await send(await refreshAccessToken());
+    } catch {
+      clearSession();
+      window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT));
+      throw new ApiError(
+        "Your session has expired. Please sign in again.",
+        401,
+        "session_expired"
+      );
     }
   }
-
-  if (headers) {
-    Object.entries(headers).forEach(([key, value]) => {
-      h.append(key, String(value));
-    });
-  }
-
-  // h.append("X-From-Admin", location.host);
-  const q = new URLSearchParams(query).toString();
-  const url = `${ROUTING_URL}${pipe(getRoute(key), params)}${q ? `?${q}` : ""}`;
-
-  const options: RequestInit = {
-    method: "GET",
-    headers: h,
-    credentials: "include",
-  };
-
-  const res = await fetch(url, options);
 
   if (res.ok) {
     const disposition = res.headers.get("Content-Disposition");
@@ -272,6 +258,11 @@ export const file = async (
 
     return; // No need to return anything else
   }
-  const errorMessage = await res.json().then((res) => res.message);
-  throw new Error(errorMessage);
+
+  const errorBody = await res.json().catch(() => null);
+  throw new ApiError(
+    errorBody?.message || `Error: ${res.status} ${res.statusText}`,
+    res.status,
+    errorBody?.data?.code
+  );
 };

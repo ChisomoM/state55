@@ -1,0 +1,97 @@
+/* Motherland design tokens. Components use the semantic names, never the raw palette. */
+:root,
+[data-theme="light"] {
+  --clay-600: #b5381f;
+  --ochre-400: #e0a030;
+  --baobab-700: #1f6b45;
+  --lake-700: #0d6b64;
+  --earth-900: #1e1410;
+  --sand-100: #f5ede0;
+  --ivory-50: #fbf7f0;
+
+  /* Page ground is a clean near-white; cards are pure white on top of it, inputs and tracks sit sunken. */
+  --surface: #f9f8f6;
+  --surface-raised: #ffffff;
+  --surface-sunken: #f1efeb;
+  --surface-inverse: #1e1410;
+
+  --ink: #1e1410;
+  --ink-muted: #5c4a3e;
+  --ink-inverse: #fbf7f0;
+
+  --line: #e5e0d8;
+  --line-strong: #8c7663;
+
+  --brand: #b5381f;
+  --on-brand: #ffffff;
+  --brand-strong: #8f2b17;
+  --brand-soft: #f6dcd3;
+
+  --accent: #e0a030;
+  --on-accent: #1e1410;
+  --accent-strong: #7a5208;
+  --accent-soft: #f8e7c4;
+
+  --success: #1f6b45;
+  --success-soft: #dcefe2;
+  --info: #0d6b64;
+  --info-soft: #d5eeeb;
+  --danger: #9f1d1d;
+  --danger-soft: #f9dedb;
+  --warning: #7a5208;
+  --warning-soft: #f8e7c4;
+
+  --focus: #0d6b64;
+
+  /* Earth-tinted elevation. Cards rest on card, lift to card-hover. */
+  --shadow-1: 0 1px 2px rgba(30, 20, 16, 0.05), 0 1px 3px rgba(30, 20, 16, 0.08);
+  --shadow-2: 0 4px 8px -2px rgba(30, 20, 16, 0.1), 0 2px 4px -2px rgba(30, 20, 16, 0.06);
+  --shadow-3: 0 16px 40px rgba(30, 20, 16, 0.18), 0 4px 10px rgba(30, 20, 16, 0.08);
+  --shadow-card: 0 4px 16px rgba(30, 20, 16, 0.05);
+  --shadow-card-hover: 0 10px 28px rgba(30, 20, 16, 0.09);
+
+  /* The only gradient in the product: the primary button. Stays in the clay family so white text keeps AA. */
+  --gradient-cta: linear-gradient(120deg, #8f2b17 0%, #b5381f 55%, #c8452a 100%);
+  --gradient-cta-hover: linear-gradient(120deg, #7a2413 0%, #9f3019 55%, #b5381f 100%);
+  --shadow-cta: 0 4px 14px rgba(181, 56, 31, 0.28), 0 1px 3px rgba(30, 20, 16, 0.2);
+
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+
+  --font-display: "Archivo", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  --font-sans: "Noto Sans", "Segoe UI", Roboto, Arial, sans-serif;
+  --font-serif: "Noto Serif", Georgia, "Times New Roman", serif;
+}
+
+[data-theme="dark"] {
+  --surface: #17100c;
+  --surface-raised: #241914;
+  --surface-sunken: #120c09;
+  --surface-inverse: #f5ede0;
+  --ink: #f5ede0;
+  --ink-muted: #c9b8a6;
+  --ink-inverse: #1e1410;
+  --line: #3a2c23;
+  --line-strong: #7a6655;
+  --brand: #e0613f;
+  --on-brand: #1e1410;
+  --brand-strong: #f2937a;
+  --brand-soft: #4a1e14;
+  --accent: #e8b04a;
+  --accent-strong: #f0c46e;
+  --accent-soft: #3d2c10;
+  --success: #5bbf8a;
+  --success-soft: #12301f;
+  --info: #4fc2b8;
+  --info-soft: #0e2a28;
+  --danger: #f2867a;
+  --danger-soft: #3e1513;
+  --warning: #f0c46e;
+  --warning-soft: #3d2c10;
+  --focus: #4fc2b8;
+  --gradient-cta: linear-gradient(120deg, #cf5232 0%, #e0613f 55%, #ea7452 100%);
+  --gradient-cta-hover: linear-gradient(120deg, #c04a2c 0%, #d3563a 55%, #e0613f 100%);
+  --shadow-cta: 0 4px 14px rgba(224, 97, 63, 0.3);
+  --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.3);
+  --shadow-card-hover: 0 10px 28px rgba(0, 0, 0, 0.45);
+}

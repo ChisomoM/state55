@@ -1,7 +1,8 @@
-version: '3.8'
-
 services:
+  # Optional: only started with `docker compose --profile db up -d`. By default the backend
+  # expects a PostgreSQL already installed on your machine (see DB_* in .env).
   postgres:
+    profiles: ["db"]
     image: postgres:15-alpine
     container_name: template_postgres
     environment:
@@ -18,5 +19,46 @@ services:
       timeout: 5s
       retries: 5
 
+  redis:
+    image: redis:7-alpine
+    container_name: state55_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: quay.io/minio/minio:latest
+    container_name: state55_minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Local SMTP catcher. Web UI at http://localhost:8025, SMTP on 1025.
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: state55_mailpit
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
 volumes:
   postgres_data:
+  redis_data:
+  minio_data:

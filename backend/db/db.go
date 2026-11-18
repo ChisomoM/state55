@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"fmt"
 	"sync"
 
@@ -55,6 +56,15 @@ func newManager(cfg *config.Config, logger *zap.SugaredLogger) (*Manager, error)
 	sqlDB.SetMaxIdleConns(cfg.DBPoolMaxIdle)
 
 	return &Manager{db: db}, nil
+}
+
+// Ping checks that the database is reachable (used by the readiness check).
+func Ping(ctx context.Context) error {
+	sqlDB, err := GetDB().DB()
+	if err != nil {
+		return err
+	}
+	return sqlDB.PingContext(ctx)
 }
 
 // GetDB returns the singleton database connection pool.

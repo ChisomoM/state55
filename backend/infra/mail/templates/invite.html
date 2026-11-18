@@ -1,0 +1,10 @@
+<!doctype html>
+<html>
+  <body style="font-family: sans-serif; color: #1F2937; line-height: 1.5;">
+    <p>Hello{{if .Name}} {{.Name}}{{end}},</p>
+    <p>You have been invited to join State 55. Set your password to activate your account:</p>
+    <p><a href="{{.Link}}" style="background:#000;color:#fff;padding:10px 18px;border-radius:6px;text-decoration:none;">Set your password</a></p>
+    <p style="color:#6B7280;">The link expires in {{.ExpiresIn}}. If you were not expecting this invitation, you can ignore this email.</p>
+    <p style="color:#6B7280;">State 55 Pan-African Digital Community</p>
+  </body>
+</html>

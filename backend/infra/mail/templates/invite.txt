@@ -1,0 +1,9 @@
+Hello{{if .Name}} {{.Name}}{{end}},
+
+You have been invited to join State 55. Open this link to set your password and activate your account:
+
+{{.Link}}
+
+The link expires in {{.ExpiresIn}}. If you were not expecting this invitation, you can ignore this email.
+
+State 55 Pan-African Digital Community

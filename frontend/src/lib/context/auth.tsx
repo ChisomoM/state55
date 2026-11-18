@@ -6,203 +6,184 @@ import {
 } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-// import { post } from '../api/crud';
+import { authApi, toAuthUser } from '../api/auth';
+import { usersApi } from '../api/admin';
+import {
+  SESSION_EXPIRED_EVENT,
+  clearSession,
+  readTokens,
+  readUser,
+  writeSession,
+  writeUser,
+} from '../auth/tokenStore';
 import type {
   AuthUser,
   AuthTokens,
   AuthContextValue,
-  LoginUser,
+  LoginApiResponse,
 } from '@/types/auth';
-import { STORAGE_KEYS } from '../../types/auth';
+import { ADMIN_ACCESS, landingFor } from '../../types/auth';
+import type { Me } from '@/types/admin';
 import { AuthContext } from './AuthContext';
 
+const errorMessage = (err: unknown, fallback: string) =>
+  err instanceof Error ? err.message : fallback;
+
+// Profile from GET /users/me -> the app's user shape.
+const userFromMe = (me: Me): AuthUser => ({
+  id: me.id,
+  email: me.email,
+  firstName: me.first_name,
+  lastName: me.last_name,
+  roleSlug: me.role_slug,
+  emailVerified: me.email_verified,
+  memberId: me.member_id || undefined,
+});
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [tokens, setTokens] = useState<AuthTokens | null>(null);
+  const [permissions, setPermissions] = useState<string[]>([]);
+  // True only while a saved session (and its permissions) is being restored on first load.
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  const clearStorage = useCallback(() => {
-    try {
-      localStorage.removeItem(STORAGE_KEYS.TOKENS);
-      localStorage.removeItem(STORAGE_KEYS.USER);
-    } catch (err) {
-      console.error('Failed to clear storage:', err);
-    }
+  /** Loads the profile + permissions for the stored session. Returns the permission codes. */
+  const loadMe = useCallback(async (): Promise<string[]> => {
+    const me = await usersApi.me();
+    const fresh = userFromMe(me);
+    setUser(fresh);
+    setPermissions(me.permissions);
+    writeUser(fresh);
+    return me.permissions;
   }, []);
 
- 
-  const restoreSessionFromStorage = useCallback(() => {
-    try {
-      const storedTokens = localStorage.getItem(STORAGE_KEYS.TOKENS);
-      const storedUser = localStorage.getItem(STORAGE_KEYS.USER);
-
-      if (storedTokens && storedUser) {
-        const parsedTokens = JSON.parse(storedTokens);
-        const parsedUser = JSON.parse(storedUser);
-
-        setTokens(parsedTokens);
-        setUser(parsedUser);
-      }
-    } catch (err) {
-      console.error('Failed to restore session from storage:', err);
-      clearStorage();
-    } finally {
+  // Restore the saved session on first load.
+  useEffect(() => {
+    const savedTokens = readTokens();
+    const savedUser = readUser();
+    if (!savedTokens || !savedUser) {
       setIsLoading(false);
+      return;
     }
-  }, [clearStorage]);
 
-  /**
-   * Persist auth state to localStorage
-   * Called after login to save tokens and user data
-   */
-  const saveToStorage = useCallback(
-    (authUser: AuthUser, authTokens: AuthTokens) => {
-      try {
-        localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(authUser));
-        localStorage.setItem(STORAGE_KEYS.TOKENS, JSON.stringify(authTokens));
-      } catch (err) {
-        console.error('Failed to save auth state to storage:', err);
-        toast.error('Failed to save authentication state');
-      }
-    },
-    []
-  );
-   
-  // New API only: response.data.user + response.data.token
-  const deriveUserFromResponse = useCallback(
-    (user: LoginUser): AuthUser => {
-      const baseUser: AuthUser = {
-        id: String(user.id ?? ''),
-        email: user.email ?? '',
-        accountType: 'admin',
-        isActive: !(user.blocked ?? false),
-        isVerified: true,
-        firstName: user.first_name ?? undefined,
-        lastName: user.last_name ?? undefined,
-      };
+    setTokens(savedTokens);
+    setUser(savedUser);
 
-      // If user is a super user, role is already set via accountType
-      if (user.is_superUser) baseUser.role = 'admin';
+    loadMe()
+      .catch((err) => {
+        // 404 means the account was deleted or deactivated; anything else that reaches here is a
+        // network problem (keep the session, permissions stay empty until the next refresh).
+        if (err?.status === 404) {
+          clearSession();
+          setTokens(null);
+          setUser(null);
+        } else {
+          console.error('Failed to load profile:', err);
+        }
+      })
+      .finally(() => setIsLoading(false));
+  }, [loadMe]);
 
-      return baseUser;
-    },
-    []
-  );
-
-
-
-  const login = useCallback(
-    async (email: string, _password: string) => {
-      try {
-        setIsLoading(true);
-        setError(null);
-
-       
-          // const response = await post('LOGIN', { email, _password });
-
-        // Expect new API shape: response.data.user and response.data.token
-        // const payload = response?.data ?? response;
-        // const userPayload = payload?.user as LoginUser | undefined;
-        // const token = payload?.token as string | undefined;
-
-        // if (!userPayload || !token) {
-        //   throw new Error('Invalid login response from server');
-        // }
-        // const authUser = deriveUserFromResponse(userPayload);
-        // const authTokens: AuthTokens = { token };
-         // Fake authentication logic - always succeed for dev
-        // if (email === 'admin@example.com' && password === 'password') {
-          // Create fake user data
-          const fakeUserPayload: LoginUser = {
-            blocked: false,
-            id: 1,
-            status: 1,
-            username: 'admin',
-            email: email || 'admin@example.com',
-            first_name: 'Admin',
-            last_name: 'User',
-            is_superUser: true,
-            mobile: null,
-            last_login_date: new Date().toISOString(),
-            failed_attempts: 0,
-            role_id: 1,
-          };
-
-          const fakeToken = 'fake-jwt-token-' + Date.now();
-
-          const authUser = deriveUserFromResponse(fakeUserPayload);
-          const authTokens: AuthTokens = { token: fakeToken };
-
-          // Save to storage and update context
-          saveToStorage(authUser, authTokens);
-          setTokens(authTokens);
-          setUser(authUser);
-
-          // Show success message
-          toast.success('Login successful!');
-
-          // Auto-redirect to admin dashboard
-          const redirectPath = '/admin/dashboard';
-          navigate(redirectPath);
-        // } else {
-        //   throw new Error('Invalid credentials');
-        // }
-      } catch (err) {
-        const errorMsg = err instanceof Error ? err.message : 'Login failed';
-        setError(errorMsg);
-        toast.error(errorMsg);
-        throw err;
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [saveToStorage, navigate, deriveUserFromResponse]
-  );
-
-  /**
-    LOGOUT - Clear all auth state and redirect to login
-   */
-  const logout = useCallback(async () => {
-    try {
-      // Clear storage and state
-      clearStorage();
+  // The API layer fires this when a refresh fails (refresh token expired or rejected).
+  useEffect(() => {
+    const onExpired = () => {
       setTokens(null);
       setUser(null);
-      setError(null);
-
-      // Redirect to login
+      setPermissions([]);
+      toast.error('Your session has expired. Please sign in again.');
       navigate('/login');
-      toast.success('Logged out successfully');
-    } catch (err) {
-      console.error('Logout error:', err);
-      toast.error('Logout failed');
-    }
-  }, [clearStorage, navigate]);
+    };
+    window.addEventListener(SESSION_EXPIRED_EVENT, onExpired);
+    return () => window.removeEventListener(SESSION_EXPIRED_EVENT, onExpired);
+  }, [navigate]);
 
+  /** Saves a full-session response, loads the user's permissions, and goes to their landing page. */
+  const startSession = useCallback(
+    async (res: LoginApiResponse) => {
+      if (!res.access_token || !res.refresh_token || !res.user) {
+        throw new Error('Invalid login response from server');
+      }
 
-  useEffect(() => {
-    restoreSessionFromStorage();
-  }, [restoreSessionFromStorage]);
+      const authUser = toAuthUser(res.user);
+      const authTokens: AuthTokens = {
+        access_token: res.access_token,
+        refresh_token: res.refresh_token,
+      };
 
+      writeSession(authUser, authTokens);
 
+      // Permissions decide where the user lands; the token is already stored, so this call works.
+      // The user and tokens are published only after the permissions are known, so pages that
+      // redirect signed-in users never see a half-ready session.
+      let granted: string[] = [];
+      try {
+        granted = await loadMe();
+      } catch (err) {
+        console.error('Failed to load permissions:', err);
+        setUser(authUser);
+      }
+      setTokens(authTokens);
+
+      toast.success('Signed in');
+      navigate(landingFor(granted.includes(ADMIN_ACCESS)), { replace: true });
+    },
+    [navigate, loadMe]
+  );
+
+  const login = useCallback(
+    async (email: string, password: string): Promise<void> => {
+      setError(null);
+      try {
+        await startSession(await authApi.login(email, password));
+      } catch (err) {
+        setError(errorMessage(err, 'Login failed'));
+        throw err;
+      }
+    },
+    [startSession]
+  );
+
+  /**
+   * Sign out on this device. Tokens are stateless, so there is nothing to revoke on the server;
+   * the refresh token simply stops being used.
+   */
+  const logout = useCallback(async () => {
+    clearSession();
+    setTokens(null);
+    setUser(null);
+    setPermissions([]);
+    setError(null);
+    navigate('/login');
+    toast.success('Logged out successfully');
+  }, [navigate]);
+
+  const hasPermission = useCallback(
+    (...codes: string[]) => codes.some((c) => permissions.includes(c)),
+    [permissions]
+  );
+
+  const refreshMe = useCallback(async () => {
+    await loadMe();
+  }, [loadMe]);
 
   const value: AuthContextValue = {
     // State
     user,
     tokens,
+    permissions,
     isLoading,
     isAuthenticated: !!user && !!tokens,
     error,
+    landingPath: landingFor(permissions.includes(ADMIN_ACCESS)),
 
     // Methods
     login,
     logout,
-    setUser,
-    setTokens,
     clearError: () => setError(null),
+    hasPermission,
+    refreshMe,
   };
 
   return (

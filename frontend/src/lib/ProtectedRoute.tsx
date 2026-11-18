@@ -1,22 +1,22 @@
 import type { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/lib/context/useAuth';
-import type { AccountType } from '@/types/auth';
 
 interface ProtectedRouteProps {
   children: ReactNode;
-  requiredAccountType?: AccountType | AccountType[];
+  /** If set, the user must hold at least one of these permission codes (e.g. "users.read"). */
+  permission?: string | readonly string[];
   fallback?: ReactNode;
 }
 
 export function ProtectedRoute({
   children,
-  requiredAccountType,
+  permission,
   fallback,
 }: ProtectedRouteProps) {
-  const { user, isLoading, isAuthenticated } = useAuth();
+  const { user, isLoading, isAuthenticated, hasPermission } = useAuth();
 
-  // Still loading auth state - show fallback
+  // Still restoring the saved session and its permissions - show fallback
   if (isLoading) {
     return fallback || <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
@@ -26,17 +26,10 @@ export function ProtectedRoute({
     return <Navigate to="/login" replace />;
   }
 
-  // Check if user has required account type
-  if (requiredAccountType) {
-    const requiredTypes = Array.isArray(requiredAccountType)
-      ? requiredAccountType
-      : [requiredAccountType];
-
-    // Determine effective account type from new user shape.
-    // Prefer explicit `accountType` if present; otherwise infer from `is_superUser`.
-    const effectiveAccountType: AccountType = user.accountType ?? 'admin'; // (user.is_superUser ? 'system_admin' : 'merchant');
-
-    if (!requiredTypes.includes(effectiveAccountType)) {
+  // Signed in but missing the permission. This only hides screens: the backend enforces access.
+  if (permission) {
+    const required = typeof permission === 'string' ? [permission] : [...permission];
+    if (!hasPermission(...required)) {
       return <Navigate to="/unauthorized" replace />;
     }
   }

@@ -1,170 +1,128 @@
-import { Wordmark } from "@/components/Wordmark";
-import { useAuth } from "@/lib/context/useAuth";
-import { Label } from "@radix-ui/react-label";
-import { Eye, EyeClosed, Loader2, Building2 } from "lucide-react";
 import { useState } from "react";
+import { Link } from "react-router-dom";
+import { Label } from "@radix-ui/react-label";
+import { Loader2, UserPlus } from "lucide-react";
+import { toast } from "sonner";
+import { authApi } from "@/lib/api/auth";
+import { ApiError } from "@/lib/api/crud";
+import { useAuth } from "@/lib/context/useAuth";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-// import { ForgotPasswordModal } from "./forgotPasswordModal";
-
-
-
+import { AuthCard, FormError } from "./AuthShell";
+import { PasswordField } from "./PasswordField";
 
 interface LoginFormProps {
   onSignUpClick: () => void;
 }
 
+const errorMessage = (err: unknown) =>
+  err instanceof Error ? err.message : "We could not complete that. Check your connection and try again.";
+
 export const LoginForm: React.FC<LoginFormProps> = ({ onSignUpClick }) => {
+  const { login } = useAuth();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [see, setSee] = useState(false);
-  // const [showForgotPassword, setShowForgotPassword] = useState(false);
-  
-  const { login, isLoading } = useAuth();
 
-  // const forgotPassword = async () => {
-  //   try{
-  //     await post()
-  //   }catch(err){
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [needsVerification, setNeedsVerification] = useState(false);
 
-  //   }
-  // }
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleCredentials = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!email || !password) {
-      return;
-    }
+    if (!email || !password) return;
 
+    setBusy(true);
+    setError(null);
+    setNeedsVerification(false);
     try {
+      // On success the auth context redirects to the user's landing page.
       await login(email, password);
-      // Navigation is handled by the auth context's login method
     } catch (err) {
-      // Error is already displayed by useAuth hook via toast
-      console.error('Login failed:', err);
+      if (err instanceof ApiError && err.code === "email_not_verified") {
+        setNeedsVerification(true);
+      }
+      setError(errorMessage(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const resendVerification = async () => {
+    try {
+      await authApi.resendVerification(email);
+      toast.success("If your account needs it, a new verification email is on its way.");
+    } catch (err) {
+      toast.error(errorMessage(err));
     }
   };
 
   return (
-    <div className="w-full max-w-md mx-auto">
-      <div className="bg-white rounded-2xl shadow-xl p-6 space-y-4 border border-gray-100">
-        <div className="space-y-1">
-          {/* <Logo className="h-20 w-auto mx-auto transform hover:scale-105 transition-transform duration-300 "/> */}
-        <div className="text-center">
-          <Wordmark className="text-3xl" />
+    <AuthCard title="Sign in" subtitle="Welcome back. Use the email you joined with.">
+      <form onSubmit={handleCredentials} className="space-y-4">
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="email" className="text-sm font-semibold text-ink">
+            Email address
+          </Label>
+          <Input
+            placeholder="name@example.com"
+            id="email"
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            disabled={busy}
+          />
         </div>
-        
-        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="email" className="text-xs sm:text-sm font-medium text-gray-700">
-              Email Address
-            </Label>
-            <Input
-              placeholder="admin@example.com"
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full h-10 transition-all duration-200 focus:ring-2 focus:ring-blue focus:border-transparent text-sm"
-              disabled={isLoading}
-            />
-          </div>
+        <PasswordField id="password" label="Password" value={password} onChange={setPassword} disabled={busy} />
 
-          <div className="space-y-1.5">
-            <Label htmlFor="password" className="text-xs sm:text-sm font-medium text-gray-700">
-              Password
-            </Label>
-            <div className="relative">
-              <Input
-                placeholder="Enter your password"
-                id="password"
-                type={see ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full h-10 pr-10 transition-all duration-200 focus:ring-2 focus:ring-blue focus:border-transparent text-sm"
-                disabled={isLoading}
-              />
-              <Button
-                className="absolute right-0 top-0 h-10 px-3 hover:bg-transparent"
-                variant="ghost"
-                type="button"
-                onClick={() => setSee(!see)}
-
-                tabIndex={-1}
-              >
-                {see ? (
-                  <Eye className="h-4 w-4 text-gray-500" />
-                ) : (
-                  <EyeClosed className="h-4 w-4 text-gray-500" />
-                )}
-              </Button>
-            </div>
-          </div>
-
-          <div className="flex justify-end">
-            <button
-              type="button"
-              // onClick={() => setShowForgotPassword(true)}
-              className="text-xs sm:text-sm text-blue hover:text-blue-dark font-medium transition-colors duration-200 hover:underline"
-            >
-              Forgot password?
-            </button>
-          </div>
-
-          <Button
-            type="submit"
-            className="w-full h-10 bg-black hover:bg-blue-dark text-white font-medium shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] text-sm"
-            disabled={isLoading}
+        <div className="flex justify-end">
+          <Link
+            to="/forgot-password"
+            className="inline-flex h-11 items-center text-sm font-semibold text-info underline-offset-4 hover:underline"
           >
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Signing in...
-              </>
-            ) : (
-              "Sign In"
-            )}
-          </Button>
-        </form>
-
-        {/* Divider */}
-        <div className="relative py-2">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t border-gray-200" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-white px-2 text-gray-500">Don't have an account?</span>
-          </div>
+            Forgot password?
+          </Link>
         </div>
 
-        {/* Sign Up Section */}
-        <div className="space-y-2">
-          <Button
+        <FormError message={error} />
+        {needsVerification && (
+          <button
             type="button"
-            variant="outline"
-            onClick={onSignUpClick}
-            className="w-full h-10 border-2 border-[#E5600B] text-[#E5600B] hover:bg-[#E5600B] hover:text-white font-medium transition-all duration-300 transform hover:scale-[1.02] shadow-sm hover:shadow-md text-sm"
+            onClick={resendVerification}
+            className="inline-flex h-11 items-center text-sm font-semibold text-info underline-offset-4 hover:underline"
           >
-            <Building2 className="mr-2 h-4 w-4" />
-            Register Your Business
-          </Button>
-          <p className="text-xs text-center text-gray-500 leading-relaxed">
-            Complete your registration and get started
-          </p>
-        </div>
+            Resend verification email
+          </button>
+        )}
+
+        <Button type="submit" size="lg" className="w-full" disabled={busy}>
+          {busy ? (
+            <>
+              <Loader2 className="animate-spin" aria-hidden="true" />
+              Signing in
+            </>
+          ) : (
+            "Sign in"
+          )}
+        </Button>
+      </form>
+
+      <div className="flex items-center gap-3 text-sm text-ink-muted">
+        <span className="h-px flex-1 bg-line" />
+        <span>New to Motherland?</span>
+        <span className="h-px flex-1 bg-line" />
       </div>
 
-      {/* Forgot Password Modal */}
-      {/* <ForgotPasswordModal
-        open={showForgotPassword}
-        onOpenChange={setShowForgotPassword}
-      /> */}
-    </div>
+      <div className="space-y-2">
+        <Button type="button" variant="outline" onClick={onSignUpClick} className="w-full">
+          <UserPlus aria-hidden="true" />
+          Create an account
+        </Button>
+        <p className="text-sm text-ink-muted">You will confirm your email address first.</p>
+      </div>
+    </AuthCard>
   );
-
 };

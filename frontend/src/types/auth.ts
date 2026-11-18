@@ -1,84 +1,77 @@
 /**
- * Auth Types - Adapted to the new login response shape used by the API.
- * New login response example:
- * {
- *   "data": { "user": { ... }, "token": "..." },
- *   "message": "Login successful",
- *   "status": "success"
- * }
+ * Auth types. These mirror the backend's /api/v1/auth responses
+ * (backend/modules/auth/models.go).
  */
 
-// Keep AccountType for backward compatibility in parts of the app that still need it
-export type AccountType = 'admin';
-
-// User object returned by the new login endpoint
-export interface LoginUser {
-  blocked: boolean;
-  id: number | string;
-  status: number;
-  username: string;
+// User as returned by the API (snake_case).
+export interface ApiUser {
+  id: string;
   email: string;
   first_name: string;
   last_name: string;
-  is_superUser: boolean;
-  mobile?: string | null;
-  last_login_date?: string | null;
-  failed_attempts?: number;
-  role_id?: number | null;
+  role_slug: string;
+  email_verified: boolean;
+  member_id?: string; // Public member ID, assigned once the email is verified
 }
 
-// Tokens returned by the new login endpoint (single token string)
+// User as used inside the app (camelCase).
+export interface AuthUser {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  roleSlug: string;
+  emailVerified: boolean;
+  memberId?: string;
+}
+
 export interface AuthTokens {
-  token: string;
-  // keep optional legacy fields to remain flexible for other endpoints
+  access_token: string; // Lasts 4 hours (ACCESS_TOKEN_TTL_MINUTES on the server). Sent on every API call.
+  refresh_token: string; // Long-lived. Exchanged for a new pair when the access token expires.
+}
+
+// Raw body of login / refresh responses.
+export interface LoginApiResponse {
   access_token?: string;
   refresh_token?: string;
-  expires_at?: string;
-  token_type?: string;
+  user?: ApiUser;
 }
 
-// Unified AuthUser for use across the app. It can contain fields from the LoginUser
-// but also keep optional fields used previously (company/team_member, accountType, etc.)
-export interface AuthUser extends Partial<LoginUser> {
-  // legacy/optional fields for merchants/admins
-  accountType?: AccountType;
-  company?: Record<string, unknown> | null;
-  team_member?: Record<string, unknown> | null;
-  // convenience normalized names
-  firstName?: string;
-  lastName?: string;
-  role?: string;
-  isVerified?: boolean;
-  isActive?: boolean;
+export interface RegisterApiResponse {
+  user: ApiUser;
+  verification_sent: boolean;
 }
 
-// API Response structure for the new login
-export interface LoginResponse {
-  status: string; // e.g. "success" or "error"
-  message: string;
-  data: {
-    user: LoginUser;
-    token: string;
-  };
-}
+// Permission that opens the admin console. Everything inside it has its own, narrower permission.
+export const ADMIN_ACCESS = 'admin.console.read';
 
 // Auth Context State
 export interface AuthContextState {
   user: AuthUser | null;
   tokens: AuthTokens | null;
+  /** Permission codes the signed-in user holds (from GET /users/me). Empty when signed out. */
+  permissions: string[];
+  /** True while a saved session is being restored (including loading its permissions). */
   isLoading: boolean;
   isAuthenticated: boolean;
   error: string | null;
+  /** Where this user lands after signing in: the admin dashboard if they hold admin.console.read, else their own dashboard. */
+  landingPath: string;
 }
+
+/** Landing page for a user, given whether they can open the admin console. */
+export const landingFor = (isAdmin: boolean) => (isAdmin ? '/admin/dashboard' : '/dashboard');
 
 // Auth Context Methods
 export interface AuthContextMethods {
-  // Account type is detected from the login response
+  /** Email + password. Starts a session and navigates to the user's landing page. */
   login(email: string, password: string): Promise<void>;
   logout(): Promise<void>;
-  setUser(user: AuthUser | null): void;
-  setTokens(tokens: AuthTokens | null): void;
   clearError(): void;
+  /** True if the user holds at least one of the permission codes. UI convenience only; the backend enforces access. */
+  hasPermission(...codes: string[]): boolean;
+  /** Re-reads profile + permissions from the server (e.g. after editing the profile). */
+  refreshMe(): Promise<void>;
 }
 
 // Complete Auth Context Value
@@ -89,4 +82,3 @@ export const STORAGE_KEYS = {
   TOKENS: 'auth_tokens',
   USER: 'auth_user',
 } as const;
-

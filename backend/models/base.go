@@ -28,5 +28,5 @@ func (b *BaseModel) BeforeCreate(tx *gorm.DB) (err error) {
 // All domain models that belong to a specific tenant should embed this instead of BaseModel.
 type TenantBaseModel struct {
 	BaseModel
-	TenantID string `json:"tenant_id" gorm:"index;not null"`
+	TenantID uuid.UUID `json:"tenant_id" gorm:"type:uuid;index;not null"`
 }
